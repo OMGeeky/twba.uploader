@@ -27,7 +27,7 @@ impl<USER: EasyString> CustomFlowDelegate<USER> {
     }
 }
 impl<USER: EasyString> InstalledFlowDelegate for CustomFlowDelegate<USER> {
-    #[tracing::instrument]
+    #[tracing::instrument(skip(self))]
     fn redirect_uri(&self) -> Option<&str> {
         if !(&crate::CONF.google.local_auth_redirect) {
             let url = "https://game-omgeeky.de:7443/googleapi/auth";
@@ -48,7 +48,7 @@ impl<USER: EasyString> InstalledFlowDelegate for CustomFlowDelegate<USER> {
     }
 }
 impl<USER: EasyString> CustomFlowDelegate<USER> {
-    #[tracing::instrument]
+    #[tracing::instrument(skip(self, url, need_code))]
     async fn present_user_url(&self, url: &str, need_code: bool) -> StdResult<String, String> {
         let user: String = self
             .user
@@ -114,6 +114,10 @@ async fn get_auth_code() -> Result<String> {
             break;
         }
 
+        println!(
+            "sleeping for {} second before trying again",
+            crate::CONF.google.auth_file_read_timeout
+        );
         tokio::time::sleep(tokio::time::Duration::from_secs(
             crate::CONF.google.auth_file_read_timeout,
         ))

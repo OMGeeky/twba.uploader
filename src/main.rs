@@ -11,6 +11,19 @@ pub mod prelude;
 lazy_static! {
     pub(crate) static ref CONF: Conf = Conf::builder()
         .env()
+        .file(
+            std::env::var("TWBA_CONFIG")
+                .map(|v| {
+                    dbg!(&v);
+                    info!("using {} as primary config source after env", v);
+                    v
+                })
+                .unwrap_or_else(|x| {
+                    dbg!(x);
+                    error!("could not get config location from env");
+                    "./settings.toml".to_string()
+                })
+        )
         .file("./settings.toml")
         .file(shellexpand::tilde("~/twba/config.toml").into_owned())
         .load()
@@ -39,7 +52,7 @@ async fn run() -> Result<()> {
     let x = &CONF.google;
     debug!("{:?}", x);
 
-    trace!("creating db-connection");
+    trace!("creating db-connection with db url: {}", &CONF.db_url);
     let db = local_db::open_database(Some(&CONF.db_url)).await?;
     trace!("migrating db");
     local_db::migrate_db(&db).await?;
