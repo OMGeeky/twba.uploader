@@ -16,10 +16,10 @@ use google_youtube3::{
     hyper_rustls::{HttpsConnector, HttpsConnectorBuilder},
     Error as YoutubeError,
 };
-use twba_local_db::entities::videos::Model;
-use twba_local_db::prelude::{UsersModel, VideosModel};
 use tokio::fs;
 use tracing::instrument;
+use twba_local_db::entities::videos::Model;
+use twba_local_db::prelude::{UsersModel, VideosModel};
 
 mod auth;
 mod flow_delegate;

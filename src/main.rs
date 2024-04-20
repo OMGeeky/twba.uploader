@@ -1,6 +1,6 @@
 #![allow(unused)]
-use twba_backup_config::prelude::*;
 use lazy_static::lazy_static;
+use twba_backup_config::prelude::*;
 
 use prelude::*;
 
@@ -34,7 +34,7 @@ lazy_static! {
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
-        .with_env_filter("warn,uploader=trace")
+        .with_env_filter("warn,twba_uploader=trace")
         .init();
     let args = std::env::args().collect::<Vec<_>>();
     let presentation_mode = args.len() > 1;

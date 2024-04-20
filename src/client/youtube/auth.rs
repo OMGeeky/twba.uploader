@@ -4,6 +4,7 @@ use anyhow::{anyhow, Context};
 use google_youtube3::api::Scope;
 use google_youtube3::{hyper::client::HttpConnector, hyper_rustls::HttpsConnector, oauth2};
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use tokio::fs;
 use tracing::instrument;

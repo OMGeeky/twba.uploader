@@ -3323,7 +3323,6 @@ dependencies = [
 [[package]]
 name = "twba-local-db"
 version = "0.2.1"
-source = "git+https://github.com/OMGeeky/twitch_backup.local_db.git#3cbb175182d5f01b150ca07ad184ef99315f45c5"
 dependencies = [
  "futures",
  "sea-orm",
