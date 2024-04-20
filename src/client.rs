@@ -190,7 +190,7 @@ impl UploaderClient {
     fn get_client_for_video(&self, video: &VideosModel) -> Result<&youtube::YoutubeClient> {
         let c = self
             .youtube_client
-            .get(&video.id.to_string())
+            .get(&video.user_id.to_string())
             .context("could not get youtube client for video")?;
         Ok(c)
     }

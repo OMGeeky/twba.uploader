@@ -168,10 +168,14 @@ impl YoutubeClient {
     #[tracing::instrument]
     pub async fn new(scopes: &Vec<Scope>, user: Option<UsersModel>) -> Result<Self> {
         let hyper_client = Self::create_hyper_client();
-        let application_secret_path = &crate::CONF.google.youtube.client_secret_path;
+        let application_secret_path = PathBuf::from(
+            &shellexpand::full(&crate::CONF.google.youtube.client_secret_path)
+                .map_err(|e| UploaderError::ExpandPath(e.into()))?
+                .to_string(),
+        );
 
         let auth = auth::get_auth(
-            application_secret_path,
+            &application_secret_path,
             scopes,
             user.as_ref().map(|x| &x.youtube_id),
         )

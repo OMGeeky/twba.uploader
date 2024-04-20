@@ -1,5 +1,8 @@
 #[derive(Debug, thiserror::Error)]
 pub enum UploaderError {
+    #[error("Path could not be expanded")]
+    ExpandPath(#[source] anyhow::Error),
+
     #[error("Could not load config")]
     LoadConfig(#[source] anyhow::Error),
 

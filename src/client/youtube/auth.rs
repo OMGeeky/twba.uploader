@@ -11,10 +11,11 @@ use tracing::instrument;
 use yup_oauth2::authenticator::Authenticator;
 #[instrument]
 pub(super) async fn get_auth<USER: EasyString>(
-    application_secret_path: &String,
+    application_secret_path: &impl EasyPath,
     scopes: &Vec<Scope>,
     user: Option<USER>,
 ) -> Result<Authenticator<HttpsConnector<HttpConnector>>> {
+    let application_secret_path = application_secret_path.as_ref();
     trace!(
         "getting auth for user: {:?} with scopes: {:?} and secret_path: {:?}",
         user,

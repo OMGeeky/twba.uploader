@@ -14,13 +14,11 @@ lazy_static! {
         .file(
             std::env::var("TWBA_CONFIG")
                 .map(|v| {
-                    dbg!(&v);
-                    info!("using {} as primary config source after env", v);
+                    info!("using '{}' as primary config source after env", v);
                     v
                 })
                 .unwrap_or_else(|x| {
-                    dbg!(x);
-                    error!("could not get config location from env");
+                    warn!("could not get config location from env");
                     "./settings.toml".to_string()
                 })
         )
@@ -51,6 +49,8 @@ async fn run() -> Result<()> {
     trace!("run");
     let x = &CONF.google;
     debug!("{:?}", x);
+    let conf = &CONF.clone();
+    dbg!(conf);
 
     trace!("creating db-connection with db url: {}", &CONF.db_url);
     let db = twba_local_db::open_database(Some(&CONF.db_url)).await?;
