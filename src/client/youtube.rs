@@ -16,8 +16,8 @@ use google_youtube3::{
     hyper_rustls::{HttpsConnector, HttpsConnectorBuilder},
     Error as YoutubeError,
 };
-use local_db::entities::videos::Model;
-use local_db::prelude::{UsersModel, VideosModel};
+use twba_local_db::entities::videos::Model;
+use twba_local_db::prelude::{UsersModel, VideosModel};
 use tokio::fs;
 use tracing::instrument;
 

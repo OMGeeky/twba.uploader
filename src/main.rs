@@ -1,5 +1,5 @@
 #![allow(unused)]
-use backup_config::prelude::*;
+use twba_backup_config::prelude::*;
 use lazy_static::lazy_static;
 
 use prelude::*;
@@ -28,7 +28,7 @@ lazy_static! {
         .file(shellexpand::tilde("~/twba/config.toml").into_owned())
         .load()
         .map_err(|e| UploaderError::LoadConfig(e.into()))
-        .expect("to load config");
+        .expect("Failed to load config");
 }
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -53,9 +53,9 @@ async fn run() -> Result<()> {
     debug!("{:?}", x);
 
     trace!("creating db-connection with db url: {}", &CONF.db_url);
-    let db = local_db::open_database(Some(&CONF.db_url)).await?;
+    let db = twba_local_db::open_database(Some(&CONF.db_url)).await?;
     trace!("migrating db");
-    local_db::migrate_db(&db).await?;
+    twba_local_db::migrate_db(&db).await?;
     // local_db::print_db(&db).await?;
 
     trace!("creating client");

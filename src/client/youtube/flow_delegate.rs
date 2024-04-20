@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use anyhow::anyhow;
-use backup_config::Conf;
+use twba_backup_config::Conf;
 use std::{
     fmt::{Debug, Formatter},
     future::Future,

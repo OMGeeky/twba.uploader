@@ -3,9 +3,9 @@ use crate::CONF;
 use anyhow::{anyhow, Context};
 use google_youtube3::api::Scope;
 use lazy_static::lazy_static;
-use local_db::entities::video_upload::{ActiveModel as VideoUploadActiveModel, UploadStatus};
-use local_db::prelude::*;
-use local_db::re_exports::sea_orm::{
+use twba_local_db::entities::video_upload::{ActiveModel as VideoUploadActiveModel, UploadStatus};
+use twba_local_db::prelude::*;
+use twba_local_db::re_exports::sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel,
     Order, QueryFilter, QueryOrder,
 };
@@ -255,7 +255,7 @@ impl UploaderClient {
 
         let mut clients = HashMap::new();
 
-        let users = local_db::get_watched_users(&db).await?;
+        let users = twba_local_db::get_watched_users(&db).await?;
         for user in users {
             let user_id = user.id.to_string();
             let client = youtube::YoutubeClient::new(&YOUTUBE_DEFAULT_SCOPES, Some(user)).await?;

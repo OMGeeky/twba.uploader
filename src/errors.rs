@@ -4,7 +4,7 @@ pub enum UploaderError {
     LoadConfig(#[source] anyhow::Error),
 
     #[error("Some error with the database")]
-    OpenDatabase(#[from] local_db::re_exports::sea_orm::DbErr),
+    OpenDatabase(#[from] twba_local_db::re_exports::sea_orm::DbErr),
 
     #[error("Error with some Youtube operation: {0} ")]
     YoutubeError(#[source] google_youtube3::Error),
