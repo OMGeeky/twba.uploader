@@ -100,6 +100,7 @@ impl UploaderClient {
                 .await;
             match upload {
                 Ok(uploaded_video_id) => {
+                    info!("uploaded part: {}", part.display());
                     dbg!(&uploaded_video_id);
                     client_for_video
                         .add_video_to_playlist(uploaded_video_id.clone(), playlist_id.clone())
@@ -118,6 +119,7 @@ impl UploaderClient {
                 .await?;
         }
 
+        info!("all parts uploaded for video: {}", video_id);
         self.set_video_status_on_db(video, Status::Uploaded).await?;
         Ok(())
     }

@@ -6,7 +6,7 @@ pub enum UploaderError {
     #[error("Could not load config")]
     LoadConfig(#[source] anyhow::Error),
 
-    #[error("Some error with the database")]
+    #[error("Some error with the database: {0:?}")]
     OpenDatabase(#[from] twba_local_db::re_exports::sea_orm::DbErr),
 
     #[error("Error with some Youtube operation: {0} ")]
