@@ -24,6 +24,7 @@ lazy_static! {
         )
         .file("./settings.toml")
         .file(shellexpand::tilde("~/twba/config.toml").into_owned())
+        .file(std::env::var("TWBA_CONFIG").unwrap_or_else(|_| "~/twba/config.toml".to_string()))
         .load()
         .map_err(|e| UploaderError::LoadConfig(e.into()))
         .expect("Failed to load config");
