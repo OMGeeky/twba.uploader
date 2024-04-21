@@ -267,7 +267,7 @@ fn shorten_string_if_needed(s: &str, target_len: usize) -> String {
 #[cfg(test)]
 mod test {
     use crate::client::youtube::{create_youtube_title, TitleLocation};
-    use local_db::prelude::{Status, VideosModel};
+    use twba_local_db::prelude::{Status, VideosModel};
 
     #[test]
     fn test_shorten_string() {
