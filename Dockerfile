@@ -3,6 +3,7 @@ WORKDIR /app
 
 FROM chef AS planner
 COPY /src  ./src
+COPY /.cargo  ./.cargo
 COPY /Cargo.toml  .
 COPY /Cargo.lock  .
 RUN cargo chef prepare --recipe-path recipe.json
@@ -15,6 +16,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo chef cook --release --locked --recipe-path recipe.json
 # Build application
 COPY /src  ./src
+COPY /.cargo  ./.cargo
 COPY /Cargo.toml  .
 COPY /Cargo.lock  .
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
