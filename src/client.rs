@@ -12,7 +12,7 @@ use twba_local_db::entities::video_upload::{ActiveModel as VideoUploadActiveMode
 use twba_local_db::prelude::*;
 use twba_local_db::re_exports::sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel,
-    Order, QueryFilter, QueryOrder,
+    Order, QueryFilter, QueryOrder, QuerySelect,
 };
 
 mod youtube;
@@ -34,6 +34,7 @@ impl UploaderClient {
         let videos = Videos::find()
             .filter(VideosColumn::Status.eq(Status::Split))
             .order_by(VideosColumn::CreatedAt, Order::Asc)
+            .limit(CONF.max_items_to_process)
             .all(&self.db)
             .await?;
         let count = videos.len();
