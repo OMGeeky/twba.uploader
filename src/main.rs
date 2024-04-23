@@ -1,6 +1,7 @@
 #![allow(unused)]
 use lazy_static::lazy_static;
 use twba_backup_config::prelude::*;
+use twba_common::{get_config, init_tracing};
 
 use prelude::*;
 
@@ -9,32 +10,11 @@ pub mod errors;
 pub mod prelude;
 
 lazy_static! {
-    pub(crate) static ref CONF: Conf = Conf::builder()
-        .env()
-        .file(
-            std::env::var("TWBA_CONFIG")
-                .map(|v| {
-                    info!("using '{}' as primary config source after env", v);
-                    v
-                })
-                .unwrap_or_else(|x| {
-                    warn!("could not get config location from env");
-                    "./settings.toml".to_string()
-                })
-        )
-        .file("./settings.toml")
-        .file(shellexpand::tilde("~/twba/config.toml").into_owned())
-        .file(std::env::var("TWBA_CONFIG").unwrap_or_else(|_| "~/twba/config.toml".to_string()))
-        .load()
-        .map_err(|e| UploaderError::LoadConfig(e.into()))
-        .expect("Failed to load config");
+    pub(crate) static ref CONF: Conf = get_config();
 }
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .with_env_filter("warn,twba_uploader=trace")
-        .init();
+    init_tracing("twba_uploader");
     let args = std::env::args().collect::<Vec<_>>();
     let presentation_mode = args.len() > 1;
     info!("Hello, world!");
