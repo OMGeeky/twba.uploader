@@ -238,7 +238,7 @@ fn format_progress(max: usize, current: usize) -> String {
 
 const DATETIME_FORMAT: &str = "%Y-%m-%dT%H:%M:%S";
 fn parse_date(date: &str) -> ParseResult<NaiveDateTime> {
-    chrono::NaiveDateTime::parse_from_str(&date, DATETIME_FORMAT)
+    Ok(chrono::DateTime::parse_from_rfc3339(date)?.naive_local())
 }
 
 fn get_date_prefix(date: chrono::NaiveDate) -> String {
