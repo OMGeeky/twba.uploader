@@ -244,7 +244,7 @@ fn get_part_number_from_path(path: &Path) -> Result<usize> {
                 let part_number = part_number
                     .parse::<usize>()
                     .context("could not parse path")?;
-                return Ok(part_number);
+                return Ok(part_number + 1);
             }
             warn!("path has not the expected extension (.mp4): {:?}", path);
         }
