@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 FROM debian:bookworm AS runtime
 WORKDIR /app
 ARG PROGNAME
-RUN apt-get update && apt-get install -y libssl-dev coreutils
+RUN apt-get update && apt-get install -y libssl-dev coreutils ffmpeg
 # Create a script to run the command and sleep for one hour after the command is done
 RUN echo "#!/bin/bash \n \
           echo \"Running command: '$PROGNAME'\" \n \
