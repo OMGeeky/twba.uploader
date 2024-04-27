@@ -1,6 +1,8 @@
+use crate::client::youtube::data::VideoData;
+use crate::client::youtube::data::{create_youtube_description, create_youtube_title};
 use crate::prelude::*;
 use crate::CONF;
-use anyhow::{anyhow, Context};
+use google_youtube3::api::enums::{PlaylistStatuPrivacyStatusEnum, VideoStatuPrivacyStatusEnum};
 use google_youtube3::api::Scope;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
@@ -14,6 +16,7 @@ use twba_local_db::re_exports::sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel,
     Order, QueryFilter, QueryOrder, QuerySelect,
 };
+use youtube::data::Location;
 
 mod youtube;
 
@@ -85,8 +88,27 @@ impl UploaderClient {
         let parts_folder_path = Path::new(&CONF.download_folder_path).join(video_id.to_string());
         let parts = get_part_files(&parts_folder_path, part_count).await?;
         dbg!(&parts);
+        let user = Users::find_by_id(video.user_id)
+            .one(&self.db)
+            .await?
+            .ok_or(UploaderError::UnknownUser(video.user_id))?;
 
-        let playlist_id = client_for_video.create_playlist(video).await?;
+        let tags = vec![];
+        let all_parts_data = VideoData {
+            video_tags: tags,
+            video_category: 22,
+            //TODO get from config
+            video_privacy: VideoStatuPrivacyStatusEnum::Private,
+            //TODO get from config
+            playlist_privacy: PlaylistStatuPrivacyStatusEnum::Private,
+            playlist_description: create_youtube_description(video, &user, Location::Playlist)?,
+            playlist_title: create_youtube_title(video, &user, Location::Playlist)?,
+            //The rest of the fields are filled in the loop
+            part_number: 0,
+            video_title: "".to_string(),
+            video_description: "".to_string(),
+        };
+        let playlist_id = client_for_video.create_playlist(&all_parts_data).await?;
         self.set_playlist_id_for_video(video, playlist_id.clone())
             .await?;
 
@@ -96,8 +118,24 @@ impl UploaderClient {
                 .await?
                 .into_active_model();
 
+            let data = VideoData {
+                part_number,
+                video_title: create_youtube_title(video, &user, Location::Video(part_number))?,
+                video_description: create_youtube_description(
+                    video,
+                    &user,
+                    Location::Video(part_number),
+                )?,
+                ..all_parts_data.clone()
+            };
+            trace!(
+                "uploading part {} for video: {} from path: {}",
+                part_number,
+                video.id,
+                part.display()
+            );
             let upload = client_for_video
-                .upload_video_part(video, &part, part_number)
+                .upload_video_part(video, &part, part_number, data)
                 .await;
             match upload {
                 Ok(uploaded_video_id) => {
@@ -167,7 +205,7 @@ impl UploaderClient {
         active_video
             .update(&self.db)
             .await
-            .context("could not save video status")?;
+            .map_err(UploaderError::SaveVideoStatus)?;
         Ok(())
     }
     #[tracing::instrument(skip(self, video_upload))]
@@ -187,14 +225,14 @@ impl UploaderClient {
         active_video
             .update(&self.db)
             .await
-            .context("could not save video upload status")?;
+            .map_err(UploaderError::SaveVideoStatus)?;
         Ok(())
     }
     fn get_client_for_video(&self, video: &VideosModel) -> Result<&youtube::YoutubeClient> {
         let c = self
             .youtube_client
             .get(&video.user_id.to_string())
-            .context("could not get youtube client for video")?;
+            .ok_or(UploaderError::NoClient(video.user_id))?;
         Ok(c)
     }
 }
@@ -208,21 +246,16 @@ async fn get_part_files(folder_path: &Path, count: i32) -> Result<Vec<(PathBuf, 
     );
     let x = folder_path
         .read_dir()
-        .context("could not read parts folder")?;
+        .map_err(UploaderError::ReadPartsFolder)?;
     for path in x {
-        let path = path.context("could not read path")?;
+        let path = path.map_err(UploaderError::OpenPartFile)?;
         let path = path.path();
         let part_number = get_part_number_from_path(&path)?;
         dbg!(part_number);
         parts.push((path, part_number));
     }
     if parts.len() != count as usize {
-        return Err(anyhow!(
-            "part count does not match: expected: {}, got: {}",
-            count,
-            parts.len()
-        )
-        .into());
+        return Err(UploaderError::PartCountMismatch(count as usize, parts.len()).into());
     }
     parts.sort_by_key(|a| a.1);
     Ok(parts)
@@ -237,19 +270,19 @@ fn get_part_number_from_path(path: &Path) -> Result<usize> {
             if e == OsStr::new("mp4") {
                 let part_number = path
                     .file_stem()
-                    .context("could not get file stem")?
+                    .ok_or(UploaderError::GetNameWithoutFileExtension)?
                     .to_str()
-                    .context("could not convert path to string")?
+                    .ok_or(UploaderError::ConvertPathToString)?
                     .to_string();
                 let part_number = part_number
                     .parse::<usize>()
-                    .context("could not parse path")?;
+                    .map_err(UploaderError::ParsePartNumber)?;
                 return Ok(part_number + 1);
             }
             warn!("path has not the expected extension (.mp4): {:?}", path);
         }
     }
-    Err(anyhow!("wrong file extension").into())
+    Err(UploaderError::WrongFileExtension.into())
 }
 
 impl UploaderClient {

@@ -1,6 +1,6 @@
 use crate::client::youtube::flow_delegate::CustomFlowDelegate;
+use crate::errors::{AuthError, PersistentPathError};
 use crate::prelude::*;
-use anyhow::{anyhow, Context};
 use google_youtube3::api::Scope;
 use google_youtube3::{hyper::client::HttpConnector, hyper_rustls::HttpsConnector, oauth2};
 use std::collections::HashMap;
@@ -9,6 +9,8 @@ use std::path::{Path, PathBuf};
 use tokio::fs;
 use tracing::instrument;
 use yup_oauth2::authenticator::Authenticator;
+
+type Result<T> = std::result::Result<T, AuthError>;
 #[instrument]
 pub(super) async fn get_auth<USER: EasyString>(
     application_secret_path: &impl EasyPath,
@@ -25,7 +27,7 @@ pub(super) async fn get_auth<USER: EasyString>(
 
     let app_secret = oauth2::read_application_secret(application_secret_path)
         .await
-        .context("could not read application secret from path")?;
+        .map_err(AuthError::ReadApplicationSecret)?;
 
     let persistent_path =
         get_and_validate_persistent_path(&crate::CONF.google.path_auth_cache, user.clone()).await?;
@@ -44,13 +46,13 @@ pub(super) async fn get_auth<USER: EasyString>(
         .force_account_selection(true)
         .build()
         .await
-        .context("error creating authenticator")?;
+        .map_err(AuthError::CreateAuth)?;
 
     trace!("got authenticator, requesting scopes");
     let access_token = auth
         .token(scopes)
         .await
-        .context("could not get access to the requested scopes")?;
+        .map_err(|e| AuthError::GetAccessToken(e.into()))?;
     trace!("got scope access: {:?}", access_token);
     Ok(auth)
 }
@@ -73,7 +75,7 @@ async fn get_and_validate_persistent_path<TEMPLATE: EasyString, USER: EasyString
 
     let persistent_path_parent_folder = persistent_path
         .parent()
-        .context("could not get parent folder")?;
+        .ok_or(PersistentPathError::GetParentFolder)?;
     if !persistent_path_parent_folder.exists() {
         debug!(
             "persistent path parent folder does not exist, creating it: {}",
@@ -81,17 +83,15 @@ async fn get_and_validate_persistent_path<TEMPLATE: EasyString, USER: EasyString
         );
         fs::create_dir_all(persistent_path_parent_folder)
             .await
-            .context("could not create dirs")?;
+            .map_err(PersistentPathError::CreateDirs)?;
     } else if !persistent_path_parent_folder.is_dir() {
         error!(
             "persistent path parent folder is not a dir: {}",
             persistent_path_parent_folder.display()
         );
-        return Err(anyhow!(
-            "persistent path parent folder is not a dir: {}",
-            persistent_path_parent_folder.display()
-        )
-        .into());
+        return Err(
+            PersistentPathError::PathNotDir(persistent_path_parent_folder.to_path_buf()).into(),
+        );
     }
     Ok(persistent_path.to_path_buf())
 }
@@ -106,6 +106,6 @@ fn get_persistent_path<TEMPLATE: EasyString, USER: EasyString>(
     };
     let vars: HashMap<String, String> = HashMap::from([("user".to_string(), user)]);
     let persistent_path = strfmt::strfmt(&persistent_path_template.into(), &vars)
-        .context("could not replace user in persistent path")?;
+        .map_err(PersistentPathError::ReplaceUser)?;
     Ok(persistent_path)
 }

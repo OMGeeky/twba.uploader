@@ -1,6 +1,5 @@
+use crate::errors::AuthError;
 use crate::prelude::*;
-use anyhow::anyhow;
-use twba_backup_config::Conf;
 use std::{
     fmt::{Debug, Formatter},
     future::Future,
@@ -8,6 +7,7 @@ use std::{
     pin::Pin,
 };
 use tracing::instrument;
+use twba_backup_config::Conf;
 use yup_oauth2::authenticator_delegate::InstalledFlowDelegate;
 
 pub struct CustomFlowDelegate<USER: EasyString> {
@@ -91,7 +91,7 @@ async fn get_auth_code() -> Result<String> {
         if e.kind() != std::io::ErrorKind::NotFound {
             println!("Error removing file: {}", e);
             error!("Error removing file: {}", e);
-            return Err(anyhow!("Error removing file: {}", e).into());
+            return Err(AuthError::RemoveAuthCodeFile(e).into());
         }
     }
     let message = format!("Waiting for auth code in file: {}", path.display());
