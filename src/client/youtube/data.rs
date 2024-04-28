@@ -152,7 +152,7 @@ fn substitute_common(
         .replace(TWITCH_CHANNEL_NAME, &user.twitch_name)
         .replace(
             TWITCH_CHANNEL_URL,
-            &format!("https://twitch.tv/users/{}", &user.twitch_id),
+            &format!("https://twitch.tv/{}", &user.twitch_id),
         )
         .replace(PART_COUNT, &max.to_string()))
 }
