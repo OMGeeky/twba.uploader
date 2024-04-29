@@ -14,7 +14,7 @@ lazy_static! {
 }
 #[tokio::main]
 async fn main() -> Result<()> {
-    init_tracing("twba_uploader");
+    let _guard = init_tracing("twba_uploader");
     let args = std::env::args().collect::<Vec<_>>();
     let presentation_mode = args.len() > 1;
     info!("Hello, world!");
