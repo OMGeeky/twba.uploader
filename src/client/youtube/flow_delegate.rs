@@ -8,6 +8,7 @@ use std::{
 };
 use tracing::instrument;
 use twba_backup_config::Conf;
+use twba_common::notify::NotificationRequest;
 use yup_oauth2::authenticator_delegate::InstalledFlowDelegate;
 
 pub struct CustomFlowDelegate<USER: EasyString> {
@@ -50,17 +51,7 @@ impl<USER: EasyString> InstalledFlowDelegate for CustomFlowDelegate<USER> {
 impl<USER: EasyString> CustomFlowDelegate<USER> {
     #[tracing::instrument(skip(self, url, need_code))]
     async fn present_user_url(&self, url: &str, need_code: bool) -> StdResult<String, String> {
-        let user: String = self
-            .user
-            .clone()
-            .map(|x| x.into())
-            .unwrap_or_else(|| "unknown".into());
-        let message = format!(
-            "Please open this URL in your browser to authenticate for {}:\n{}\n",
-            user, url
-        );
-        println!("{}", message);
-        info!("{}", message);
+        self.print_url(url).await?;
         if need_code {
             let mut code = String::new();
             if crate::CONF.google.use_file_auth_response {
@@ -80,6 +71,29 @@ impl<USER: EasyString> CustomFlowDelegate<USER> {
         } else {
             Ok("".to_string())
         }
+    }
+
+    async fn print_url(&self, url: &str) -> StdResult<(), String> {
+        let user: String = self
+            .user
+            .clone()
+            .map(|x| x.into())
+            .unwrap_or_else(|| "unknown".into());
+        let message = format!(
+            "Please open this URL in your browser to authenticate for {}:\n{}\n",
+            user, url
+        );
+        println!("{}", message);
+        info!("{}", message);
+        if let Some(webhook) = &crate::CONF.notifier.webhook_url {
+            reqwest::Client::new()
+                .post(webhook)
+                .json(&NotificationRequest { message })
+                .send()
+                .await
+                .map_err(|e| format!("Error sending request: {:?}", e))?;
+        }
+        Ok(())
     }
 }
 #[instrument]
