@@ -86,6 +86,10 @@ impl<USER: EasyString> CustomFlowDelegate<USER> {
         println!("{}", message);
         info!("{}", message);
         if let Some(webhook) = &crate::CONF.notifier.webhook_url {
+            trace!(
+                "sending notification to webhook: {}...",
+                &webhook[0..webhook.len().min(20)] // only show first 20 characters of webhook
+            );
             reqwest::Client::new()
                 .post(webhook)
                 .json(&NotificationRequest { message })
