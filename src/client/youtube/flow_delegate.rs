@@ -85,19 +85,27 @@ impl<USER: EasyString> CustomFlowDelegate<USER> {
         );
         println!("{}", message);
         info!("{}", message);
-        if let Some(webhook) = &crate::CONF.notifier.webhook_url {
-            trace!(
-                "sending notification to webhook: {}...",
-                &webhook[0..webhook.len().min(20)] // only show first 20 characters of webhook
-            );
-            reqwest::Client::new()
-                .post(webhook)
-                .json(&NotificationRequest { message })
-                .send()
-                .await
-                .map_err(|e| format!("Error sending request: {:?}", e))?;
-        }
+        Self::send_notification(message).await;
         Ok(())
+    }
+
+    async fn send_notification(message: String) {
+        let notifier_url = &crate::CONF.notifier.notifier_url;
+        trace!("sending notification at: {}...", notifier_url);
+        let response = reqwest::Client::new()
+            .post(notifier_url)
+            .json(&NotificationRequest { message })
+            .send()
+            .await
+            .map_err(|e| format!("Error sending request: {:?}", e));
+        match response {
+            Ok(_) => {
+                trace!("Notification sent successfully");
+            }
+            Err(e) => {
+                error!("Error sending notification: {}", e);
+            }
+        }
     }
 }
 #[instrument]

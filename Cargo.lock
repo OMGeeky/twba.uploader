@@ -3356,8 +3356,8 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "twba-backup-config"
-version = "0.1.7"
-source = "git+https://github.com/OMGeeky/backup_config.git#fc38fbc800071ca0bddf8d15714b8eb6df17d750"
+version = "0.1.8"
+source = "git+https://github.com/OMGeeky/backup_config.git#4df6e6ff94e0f221a0cb4eedc276d7403a1f4d21"
 dependencies = [
  "confique",
  "serde",
@@ -3367,8 +3367,8 @@ dependencies = [
 
 [[package]]
 name = "twba-common"
-version = "0.2.3"
-source = "git+https://github.com/OMGeeky/twba.common.git#3e502063cc36b06c0d2aa41bddd89f999f35d6e8"
+version = "0.2.4"
+source = "git+https://github.com/OMGeeky/twba.common.git#33ffb76e2e65548f849bf05c5747a86c6ae90633"
 dependencies = [
  "serde",
  "tracing",
@@ -3406,7 +3406,7 @@ dependencies = [
 
 [[package]]
 name = "twba-uploader"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "chrono",
  "futures",
