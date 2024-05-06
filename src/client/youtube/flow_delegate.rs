@@ -91,7 +91,7 @@ impl<USER: EasyString> CustomFlowDelegate<USER> {
 
     async fn send_notification(message: String) {
         let notifier_url = &crate::CONF.notifier.notifier_url;
-        trace!("sending notification at: {}...", notifier_url);
+        trace!("sending notification at: {}", notifier_url);
         let response = reqwest::Client::new()
             .post(notifier_url)
             .json(&NotificationRequest { message })
