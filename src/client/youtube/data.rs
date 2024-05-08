@@ -157,10 +157,11 @@ fn substitute_common(
         .replace(PART_COUNT, &max.to_string()))
 }
 
-fn shorten_string_if_needed(s: &str, target_len: Option<usize>) -> String {
+fn shorten_string_if_needed(s: impl Into<String>, target_len: Option<usize>) -> String {
+    let s = s.into();
     const SHORTEN_CHARS: &str = "...";
     if target_len.is_none() {
-        return s.to_string();
+        return s;
     }
     let target_len = target_len.unwrap();
     if target_len < SHORTEN_CHARS.len() {
@@ -172,7 +173,7 @@ fn shorten_string_if_needed(s: &str, target_len: Option<usize>) -> String {
         assert_eq!(result.len(), target_len);
         result
     } else {
-        s.to_string()
+        s
     }
 }
 fn get_date_prefix(date: chrono::NaiveDate) -> String {
