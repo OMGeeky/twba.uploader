@@ -1,9 +1,10 @@
 use crate::client::youtube::data::substitutions::*;
 use crate::prelude::*;
 use crate::CONF;
-use chrono::{Datelike, NaiveDateTime, ParseResult};
+use chrono::{DateTime, Datelike, NaiveDateTime, ParseResult, Utc};
 use google_youtube3::api::enums::{PlaylistStatuPrivacyStatusEnum, VideoStatuPrivacyStatusEnum};
 use std::fmt::Debug;
+use std::str::FromStr;
 use twba_local_db::prelude::{UsersModel, VideosModel};
 
 /// The maximum length of a YouTube title that is allowed
@@ -139,7 +140,10 @@ fn substitute_common(
     max: usize,
 ) -> Result<String> {
     let date = parse_date(&video.created_at).map_err(UploaderError::ParseDate)?;
-    let date_prefix = get_date_prefix(date.date());
+    let timezone =
+        chrono::FixedOffset::from_str(&user.timezone).map_err(UploaderError::ParseDate)?;
+    let date = date.with_timezone(&timezone);
+    let date_prefix = get_date_prefix(date.date_naive());
     Ok(input
         .replace(ORIGINAL_TITLE, &video.name)
         .replace(ORIGINAL_DESCRIPTION, "")
@@ -190,8 +194,8 @@ fn format_progress(max: usize, current: usize) -> String {
     format!("[{:0width$}/{:0width$}]", current, max, width = width)
 }
 
-fn parse_date(date: &str) -> ParseResult<NaiveDateTime> {
-    Ok(chrono::DateTime::parse_from_rfc3339(date)?.naive_local())
+fn parse_date(date: &str) -> ParseResult<DateTime<Utc>> {
+    Ok(chrono::DateTime::parse_from_rfc3339(date)?.to_utc())
 }
 
 #[cfg(test)]
@@ -230,6 +234,13 @@ mod test {
         assert_eq!("[2023-10-09] wow", playlist);
     }
     #[test]
+    fn test_create_youtube_title_playlist_with_timezone() {
+        let (x, mut user) = get_test_sample_data();
+        user.timezone = "-07:00".to_string(); //streamers timezone is -07:00 (PDT)
+        let playlist = create_youtube_title(&x, &user, Location::Playlist).unwrap();
+        assert_eq!("[2023-10-08] wow", playlist);
+    }
+    #[test]
     fn test_create_youtube_title_video_1() {
         let (mut x, user) = get_test_sample_data();
         let video = create_youtube_title(&x, &user, Location::Video(1)).unwrap();
@@ -266,7 +277,7 @@ mod test {
         let mut x = VideosModel {
             part_count: 4,
             name: "wow".to_string(),
-            created_at: "2023-10-09T19:33:59+00:00".to_string(),
+            created_at: "2023-10-09T05:33:59+00:00".to_string(),
             //the rest is just dummy data
             id: 3,
             status: Status::Uploading,
