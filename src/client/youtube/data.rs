@@ -198,7 +198,7 @@ fn parse_date(date: &str) -> ParseResult<NaiveDateTime> {
 mod test {
     use crate::client::youtube::data::create_youtube_title;
     use crate::client::youtube::data::Location;
-    use twba_local_db::prelude::{Status, UsersModel, VideosModel};
+    use crate::prelude::twba_local_db::prelude::{Status, UsersModel, VideosModel};
 
     #[test]
     fn test_shorten_string() {
