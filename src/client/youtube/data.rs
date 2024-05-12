@@ -294,6 +294,7 @@ mod test {
             youtube_target_duration: 0,
             youtube_max_duration: 0,
             active: false,
+            timezone: "+00:00".to_string(),
         };
         (x, user)
     }
