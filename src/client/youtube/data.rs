@@ -2,7 +2,7 @@ use crate::client::youtube::data::substitutions::*;
 use crate::prelude::*;
 use crate::CONF;
 use chrono::{DateTime, Datelike, NaiveDateTime, ParseResult, Utc};
-use google_youtube3::api::enums::{PlaylistStatuPrivacyStatusEnum, VideoStatuPrivacyStatusEnum};
+use google_youtube3::api::enums::{PlaylistStatusPrivacyStatusEnum, VideoStatusPrivacyStatusEnum};
 use std::fmt::Debug;
 use std::str::FromStr;
 use twba_local_db::prelude::{UsersModel, VideosModel};
@@ -36,10 +36,10 @@ pub struct VideoData {
     pub video_description: String,
     pub video_tags: Vec<String>,
     pub video_category: u32,
-    pub video_privacy: VideoStatuPrivacyStatusEnum,
+    pub video_privacy: VideoStatusPrivacyStatusEnum,
     pub playlist_title: String,
     pub playlist_description: String,
-    pub playlist_privacy: PlaylistStatuPrivacyStatusEnum,
+    pub playlist_privacy: PlaylistStatusPrivacyStatusEnum,
 }
 pub struct Templates {
     pub video_title: String,

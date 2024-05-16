@@ -9,7 +9,7 @@ use std::{
 use tracing::instrument;
 use twba_backup_config::Conf;
 use twba_common::notify::NotificationRequest;
-use yup_oauth2::authenticator_delegate::InstalledFlowDelegate;
+use google_youtube3::oauth2::authenticator_delegate::InstalledFlowDelegate;
 
 pub struct CustomFlowDelegate<USER: EasyString> {
     user: Option<USER>,

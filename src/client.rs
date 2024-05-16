@@ -2,7 +2,7 @@ use crate::client::youtube::data::VideoData;
 use crate::client::youtube::data::{create_youtube_description, create_youtube_title};
 use crate::prelude::*;
 use crate::CONF;
-use google_youtube3::api::enums::{PlaylistStatuPrivacyStatusEnum, VideoStatuPrivacyStatusEnum};
+use google_youtube3::api::enums::{PlaylistStatusPrivacyStatusEnum, VideoStatusPrivacyStatusEnum};
 use google_youtube3::api::Scope;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
@@ -97,9 +97,9 @@ impl UploaderClient {
             video_tags: tags,
             video_category: 22,
             //TODO get from config
-            video_privacy: VideoStatuPrivacyStatusEnum::Private,
+            video_privacy: VideoStatusPrivacyStatusEnum::Private,
             //TODO get from config
-            playlist_privacy: PlaylistStatuPrivacyStatusEnum::Private,
+            playlist_privacy: PlaylistStatusPrivacyStatusEnum::Private,
             playlist_description: create_youtube_description(video, &user, Location::Playlist)?,
             playlist_title: create_youtube_title(video, &user, Location::Playlist)?,
             //The rest of the fields are filled in the loop

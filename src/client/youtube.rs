@@ -1,7 +1,6 @@
 use crate::client::youtube::data::VideoData;
 use crate::prelude::*;
 use chrono::{Datelike, NaiveDateTime, ParseResult, Utc};
-use google_youtube3::api::enums::{PlaylistStatuPrivacyStatusEnum, VideoStatuPrivacyStatusEnum};
 use google_youtube3::api::{
     Playlist, PlaylistSnippet, PlaylistStatus, Scope, VideoSnippet, VideoStatus,
 };
@@ -181,6 +180,7 @@ impl YoutubeClient {
         hyper::Client::builder().build(
             HttpsConnectorBuilder::new()
                 .with_native_roots()
+                .expect("could not get native roots")
                 .https_or_http()
                 .enable_http1()
                 .enable_http2()

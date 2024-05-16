@@ -8,7 +8,7 @@ use std::fmt::Debug;
 use std::path::{Path, PathBuf};
 use tokio::fs;
 use tracing::instrument;
-use yup_oauth2::authenticator::Authenticator;
+use google_youtube3::oauth2::authenticator::Authenticator;
 
 type Result<T> = std::result::Result<T, AuthError>;
 #[instrument]

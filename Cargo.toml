@@ -22,9 +22,8 @@ chrono = "0.4"
 futures = "0.3"
 futures-util = "0.3"
 
-google-youtube3 = "=5.0.3"
-google-apis-common = "=6.0.0"
-yup-oauth2 = "=8.3.0"
+google-youtube3 = "5.0.3"
+google-apis-common = "6.0.0"
 strfmt = "0.2"
 
 
