@@ -56,7 +56,7 @@ impl YoutubeClient {
         let video = Video {
             snippet: Some(VideoSnippet {
                 title: Some(video_data.video_title),
-                description: Some(video_data.video_description.into()),
+                description: Some(video_data.video_description),
                 category_id: Some(video_data.video_category.to_string()),
                 tags: Some(video_data.video_tags),
                 ..Default::default()

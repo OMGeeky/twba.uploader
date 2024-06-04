@@ -85,7 +85,7 @@ pub(crate) fn create_youtube_title(
         Location::Playlist => Some(YOUTUBE_TITLE_MAX_LENGTH),
         Location::Other => None,
     };
-    let title = shorten_string_if_needed(&title, max_len);
+    let title = shorten_string_if_needed(title, max_len);
     Ok(title)
 }
 

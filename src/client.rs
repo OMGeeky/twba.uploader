@@ -248,7 +248,7 @@ async fn get_part_files(folder_path: &Path, count: i32) -> Result<Vec<(PathBuf, 
         parts.push((path, part_number));
     }
     if parts.len() != count as usize {
-        return Err(UploaderError::PartCountMismatch(count as usize, parts.len()).into());
+        return Err(UploaderError::PartCountMismatch(count as usize, parts.len()));
     }
     parts.sort_by_key(|a| a.1);
     Ok(parts)
@@ -275,7 +275,7 @@ fn get_part_number_from_path(path: &Path) -> Result<usize> {
             warn!("path has not the expected extension (.mp4): {:?}", path);
         }
     }
-    Err(UploaderError::WrongFileExtension.into())
+    Err(UploaderError::WrongFileExtension)
 }
 
 impl UploaderClient {
