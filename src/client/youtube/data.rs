@@ -160,10 +160,10 @@ fn substitute_common(
 fn shorten_string_if_needed(s: impl Into<String>, target_len: Option<usize>) -> String {
     let s = s.into();
     const SHORTEN_CHARS: &str = "...";
-    if target_len.is_none() {
-        return s;
-    }
-    let target_len = target_len.unwrap();
+    let target_len = match target_len {
+        Some(target_len) => target_len,
+        None => return s,
+    };
     if target_len < SHORTEN_CHARS.len() {
         return SHORTEN_CHARS[..target_len].to_string();
     }

@@ -10,6 +10,9 @@ pub enum UploaderError {
     ExpandPath(#[source] LookupError<VarError>),
 
     #[error("Got an auth error: {0}")]
+    CreateClient(#[source] std::io::Error),
+
+    #[error("Got an auth error: {0}")]
     AuthError(#[from] AuthError),
 
     #[error("Some error with the database: {0:?}")]
@@ -44,6 +47,9 @@ pub enum UploaderError {
     PartCountMismatch(usize, usize),
     #[error("no id returned from youtube")]
     NoIdReturned,
+
+    #[error("This error should be unreachable: {0}")]
+    Unreachable(String),
 }
 
 #[derive(Debug, thiserror::Error)]

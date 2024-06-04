@@ -68,7 +68,14 @@ impl YoutubeClient {
         let insert_call = self.client.videos().insert(video);
         trace!("Starting resumable upload");
         let upload = insert_call
-            .upload_resumable(stream.into_std().await, "video/mp4".parse().unwrap())
+            .upload_resumable(
+                stream.into_std().await,
+                "video/mp4".parse().map_err(|_| {
+                    UploaderError::Unreachable(
+                        "Could not parse 'video/mp4' mime type. This mime type needs to always be valid.".to_string(),
+                    )
+                })?,
+            )
             .await;
         trace!("Resumable upload finished");
         let result_str = if upload.is_ok() { "Ok" } else { "Error" };
@@ -127,7 +134,10 @@ impl YoutubeClient {
             ..Default::default()
         };
         let playlist_insert_call = self.client.playlists().insert(playlist);
-        let (_, playlist) = playlist_insert_call.doit().await.unwrap();
+        let (_, playlist) = playlist_insert_call
+            .doit()
+            .await
+            .map_err(UploaderError::YoutubeError)?;
 
         playlist.id.ok_or(UploaderError::NoIdReturned)
     }
@@ -142,7 +152,7 @@ impl Debug for YoutubeClient {
 impl YoutubeClient {
     #[tracing::instrument(skip(user), fields(user.id = user.as_ref().map(|x| x.id),user.twitch_id = user.as_ref().map(|x| &x.twitch_id)))]
     pub async fn new(scopes: &Vec<Scope>, user: Option<UsersModel>) -> Result<Self> {
-        let hyper_client = Self::create_hyper_client();
+        let hyper_client = Self::create_hyper_client()?;
         let application_secret_path = PathBuf::from(
             &shellexpand::full(&crate::CONF.google.youtube.client_secret_path)
                 .map_err(UploaderError::ExpandPath)?
@@ -159,15 +169,15 @@ impl YoutubeClient {
         Ok(Self { client })
     }
 
-    fn create_hyper_client() -> Client<HttpsConnector<HttpConnector>> {
-        hyper::Client::builder().build(
+    fn create_hyper_client() -> Result<Client<HttpsConnector<HttpConnector>>> {
+        Ok(hyper::Client::builder().build(
             HttpsConnectorBuilder::new()
                 .with_native_roots()
-                .expect("could not get native roots")
+                .map_err(UploaderError::CreateClient)?
                 .https_or_http()
                 .enable_http1()
                 .enable_http2()
                 .build(),
-        )
+        ))
     }
 }
