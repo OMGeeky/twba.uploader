@@ -1,13 +1,11 @@
 use crate::client::data::VideoData;
-use crate::prelude::*;
-use google_youtube3::api::{
-    Playlist, PlaylistSnippet, PlaylistStatus, Scope, VideoSnippet, VideoStatus,
-};
-use google_youtube3::api::{PlaylistItem, PlaylistItemSnippet, ResourceId, Video};
+use crate::prelude::{info, trace, Result, UploaderError};
 use google_youtube3::{
-    hyper,
-    hyper::client::HttpConnector,
-    hyper::Client,
+    api::{
+        Playlist, PlaylistItem, PlaylistItemSnippet, PlaylistSnippet, PlaylistStatus, ResourceId,
+        Scope, Video, VideoSnippet, VideoStatus,
+    },
+    hyper::{self, client::HttpConnector, Client},
     hyper_rustls::{HttpsConnector, HttpsConnectorBuilder},
 };
 use std::fmt::{Debug, Formatter};
