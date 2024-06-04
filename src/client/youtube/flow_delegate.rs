@@ -1,5 +1,6 @@
 use crate::errors::AuthError;
 use crate::prelude::*;
+use google_youtube3::oauth2::authenticator_delegate::InstalledFlowDelegate;
 use std::{
     fmt::{Debug, Formatter},
     future::Future,
@@ -7,9 +8,7 @@ use std::{
     pin::Pin,
 };
 use tracing::instrument;
-use twba_backup_config::Conf;
 use twba_common::notify::NotificationRequest;
-use google_youtube3::oauth2::authenticator_delegate::InstalledFlowDelegate;
 
 pub struct CustomFlowDelegate<USER: EasyString> {
     user: Option<USER>,
@@ -23,7 +22,7 @@ impl<USER: EasyString> Debug for CustomFlowDelegate<USER> {
     }
 }
 impl<USER: EasyString> CustomFlowDelegate<USER> {
-    pub(crate) fn new(user: Option<USER>, config: &'static Conf) -> Self {
+    pub(crate) fn new(user: Option<USER>) -> Self {
         Self { user }
     }
 }

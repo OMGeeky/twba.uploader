@@ -2,12 +2,12 @@ use crate::client::youtube::flow_delegate::CustomFlowDelegate;
 use crate::errors::{AuthError, PersistentPathError};
 use crate::prelude::*;
 use google_youtube3::api::Scope;
+use google_youtube3::oauth2::authenticator::Authenticator;
 use google_youtube3::{hyper::client::HttpConnector, hyper_rustls::HttpsConnector, oauth2};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tokio::fs;
 use tracing::instrument;
-use google_youtube3::oauth2::authenticator::Authenticator;
 
 type Result<T> = std::result::Result<T, AuthError>;
 #[instrument]
@@ -40,7 +40,7 @@ pub(super) async fn get_auth<USER: EasyString>(
     let user = user.map(|x| x.into());
     let method = oauth2::InstalledFlowReturnMethod::Interactive;
     let auth = oauth2::InstalledFlowAuthenticator::builder(app_secret, method)
-        .flow_delegate(Box::new(CustomFlowDelegate::new(user, &crate::CONF)))
+        .flow_delegate(Box::new(CustomFlowDelegate::new(user)))
         .persist_tokens_to_disk(persistent_path)
         .force_account_selection(true)
         .build()

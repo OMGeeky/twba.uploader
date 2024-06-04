@@ -26,7 +26,6 @@ pub mod substitutions {
 pub enum Location {
     Video(usize),
     Playlist,
-    Other,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -83,7 +82,6 @@ pub(crate) fn create_youtube_title(
     let max_len = match target {
         Location::Video(_) => Some(YOUTUBE_TITLE_MAX_LENGTH),
         Location::Playlist => Some(YOUTUBE_TITLE_MAX_LENGTH),
-        Location::Other => None,
     };
     let title = shorten_string_if_needed(title, max_len);
     Ok(title)
@@ -94,7 +92,6 @@ fn get_title_template(target: Location) -> String {
     match target {
         Location::Video(_) => templates.video_title,
         Location::Playlist => templates.playlist_title,
-        Location::Other => format!("\"{}\"", ORIGINAL_TITLE),
     }
 }
 fn get_description_template(target: Location) -> String {
@@ -106,7 +103,6 @@ fn get_description_template(target: Location) -> String {
     match target {
         Location::Video(_) => templates.video_description,
         Location::Playlist => templates.playlist_description,
-        Location::Other => templates.video_description,
     }
 }
 
@@ -218,13 +214,6 @@ mod test {
         assert_eq!("", test);
         let test = super::shorten_string_if_needed("123456789", None);
         assert_eq!("123456789", test);
-    }
-
-    #[test]
-    fn test_create_youtube_title_other() {
-        let (x, user) = get_test_sample_data();
-        let description = create_youtube_title(&x, &user, Location::Other).unwrap();
-        assert_eq!("\"wow\"", description);
     }
 
     #[test]

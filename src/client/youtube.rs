@@ -14,7 +14,7 @@ use std::fmt::{Debug, Formatter};
 use std::path::{Path, PathBuf};
 use tokio::fs;
 use tracing::instrument;
-use twba_local_db::prelude::{UsersModel, VideosModel};
+use twba_local_db::prelude::UsersModel;
 
 mod auth;
 pub(crate) mod data;
@@ -23,18 +23,11 @@ mod flow_delegate;
 pub struct YoutubeClient {
     //TODO: change this to a thing that does exponential backoff when possible
     client: google_youtube3::YouTube<HttpsConnector<HttpConnector>>,
-    user: Option<UsersModel>,
 }
 
 impl YoutubeClient {
-    #[instrument(skip(self, video, path, data))]
-    pub(crate) async fn upload_video_part(
-        &self,
-        video: &VideosModel,
-        path: &Path,
-        part_num: usize,
-        data: VideoData,
-    ) -> Result<String> {
+    #[instrument(skip(self, path, data))]
+    pub(crate) async fn upload_video_part(&self, path: &Path, data: VideoData) -> Result<String> {
         let video_data = data;
         let upload_result = self
             .upload_youtube_video_resumable(video_data, path)
@@ -134,14 +127,7 @@ impl YoutubeClient {
             ..Default::default()
         };
         let playlist_insert_call = self.client.playlists().insert(playlist);
-        let (x, playlist) = playlist_insert_call
-            .doit()
-            .await
-            // .context("could not create playlist")
-            // ?
-            .unwrap()
-            //test
-            ;
+        let (_, playlist) = playlist_insert_call.doit().await.unwrap();
 
         playlist.id.ok_or(UploaderError::NoIdReturned)
     }
@@ -170,7 +156,7 @@ impl YoutubeClient {
         )
         .await?;
         let client = google_youtube3::YouTube::new(hyper_client, auth);
-        Ok(Self { client, user })
+        Ok(Self { client })
     }
 
     fn create_hyper_client() -> Client<HttpsConnector<HttpConnector>> {

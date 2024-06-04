@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use tracing::instrument;
-use twba_local_db::entities::video_upload::{UploadStatus};
+use twba_local_db::entities::video_upload::UploadStatus;
 use twba_local_db::prelude::*;
 use twba_local_db::re_exports::sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel,
@@ -26,8 +26,7 @@ lazy_static! {
 #[derive(Debug)]
 pub struct UploaderClient {
     db: DatabaseConnection,
-    reqwest_client: reqwest::Client,
-    youtube_client: HashMap<String, youtube::YoutubeClient>,
+    youtube_clients: HashMap<String, youtube::YoutubeClient>,
 }
 
 impl UploaderClient {
@@ -42,7 +41,7 @@ impl UploaderClient {
         let count = videos.len();
         info!("got {} videos to upload", count);
 
-        'video_loop: for video in videos {
+        for video in videos {
             match self.upload_video(&video).await {
                 Ok(_) => {
                     info!("Uploaded video: {}: {}", video.id, video.name);
@@ -50,27 +49,22 @@ impl UploaderClient {
                 Err(e) => {
                     error!("Error while uploading the video: {}: {}", video.id, e);
 
-                    {
-                        let fail_count = video.fail_count + 1;
-                        let previous_fails = video
-                            .fail_reason
-                            .as_ref()
-                            .unwrap_or(&String::new())
-                            .to_string();
-                        let mut video = video.clone().into_active_model();
-                        video.fail_count = ActiveValue::Set(fail_count);
-                        video.fail_reason = ActiveValue::Set(Some(format!(
-                            "{}: {}\n\n{}",
-                            fail_count, e, previous_fails
-                        )));
-                    }
-                    // self.set_video_status_on_db(&video, Status::UploadFailed)
-                    //     .await?;
+                    let fail_count = video.fail_count + 1;
+                    let previous_fails = video
+                        .fail_reason
+                        .as_ref()
+                        .unwrap_or(&String::new())
+                        .to_string();
+                    let mut video = video.clone().into_active_model();
+                    video.fail_count = ActiveValue::Set(fail_count);
+                    video.fail_reason = ActiveValue::Set(Some(format!(
+                        "{}: {}\n\n{}",
+                        fail_count, e, previous_fails
+                    )));
                 }
             }
         }
 
-        //todo: maybe add some log to the db when videos were last uploaded?
         Ok(())
     }
 
@@ -86,7 +80,6 @@ impl UploaderClient {
         let part_count = video.part_count;
         let parts_folder_path = Path::new(&CONF.download_folder_path).join(video_id.to_string());
         let parts = get_part_files(&parts_folder_path, part_count).await?;
-        dbg!(&parts);
         let user = Users::find_by_id(video.user_id)
             .one(&self.db)
             .await?
@@ -96,9 +89,7 @@ impl UploaderClient {
         let all_parts_data = VideoData {
             video_tags: tags,
             video_category: 22,
-            //TODO get from config
             video_privacy: VideoStatusPrivacyStatusEnum::Private,
-            //TODO get from config
             playlist_privacy: PlaylistStatusPrivacyStatusEnum::Private,
             playlist_description: create_youtube_description(video, &user, Location::Playlist)?,
             playlist_title: create_youtube_title(video, &user, Location::Playlist)?,
@@ -111,7 +102,7 @@ impl UploaderClient {
         self.set_playlist_id_for_video(video, playlist_id.clone())
             .await?;
 
-        'part_loop: for (part, part_number) in parts {
+        for (part, part_number) in parts {
             let mut video_upload = self
                 .insert_video_upload(video_id, part_number)
                 .await?
@@ -133,9 +124,7 @@ impl UploaderClient {
                 video.id,
                 part.display()
             );
-            let upload = client_for_video
-                .upload_video_part(video, &part, part_number, data)
-                .await;
+            let upload = client_for_video.upload_video_part(&part, data).await;
             match upload {
                 Ok(uploaded_video_id) => {
                     info!("uploaded part: {}", part.display());
@@ -145,7 +134,7 @@ impl UploaderClient {
                         .await?;
                     video_upload.upload_status = ActiveValue::Set(UploadStatus::Uploaded);
                     video_upload.youtube_video_id = ActiveValue::Set(Some(uploaded_video_id));
-                    video_upload = video_upload.update(&self.db).await?.into_active_model();
+                    video_upload.update(&self.db).await?;
                 }
                 Err(e) => {
                     error!("could not upload part: {}", e);
@@ -223,7 +212,7 @@ impl UploaderClient {
     }
     fn get_client_for_video(&self, video: &VideosModel) -> Result<&youtube::YoutubeClient> {
         let c = self
-            .youtube_client
+            .youtube_clients
             .get(&video.user_id.to_string())
             .ok_or(UploaderError::NoClient(video.user_id))?;
         Ok(c)
@@ -248,7 +237,10 @@ async fn get_part_files(folder_path: &Path, count: i32) -> Result<Vec<(PathBuf, 
         parts.push((path, part_number));
     }
     if parts.len() != count as usize {
-        return Err(UploaderError::PartCountMismatch(count as usize, parts.len()));
+        return Err(UploaderError::PartCountMismatch(
+            count as usize,
+            parts.len(),
+        ));
     }
     parts.sort_by_key(|a| a.1);
     Ok(parts)
@@ -280,8 +272,6 @@ fn get_part_number_from_path(path: &Path) -> Result<usize> {
 
 impl UploaderClient {
     pub async fn new(db: DatabaseConnection) -> Result<Self> {
-        let reqwest_client = reqwest::Client::new();
-
         let mut clients = HashMap::new();
 
         let users = twba_local_db::get_watched_users(&db).await?;
@@ -298,8 +288,7 @@ impl UploaderClient {
 
         Ok(Self {
             db,
-            reqwest_client,
-            youtube_client: clients,
+            youtube_clients: clients,
         })
     }
 }
