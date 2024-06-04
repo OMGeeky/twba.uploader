@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use tracing::instrument;
-use twba_local_db::entities::video_upload::{ActiveModel as VideoUploadActiveModel, UploadStatus};
+use twba_local_db::entities::video_upload::{UploadStatus};
 use twba_local_db::prelude::*;
 use twba_local_db::re_exports::sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel,

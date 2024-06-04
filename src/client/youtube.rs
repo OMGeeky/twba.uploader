@@ -1,6 +1,5 @@
 use crate::client::youtube::data::VideoData;
 use crate::prelude::*;
-use chrono::{Datelike, NaiveDateTime, ParseResult, Utc};
 use google_youtube3::api::{
     Playlist, PlaylistSnippet, PlaylistStatus, Scope, VideoSnippet, VideoStatus,
 };
@@ -10,13 +9,11 @@ use google_youtube3::{
     hyper::client::HttpConnector,
     hyper::Client,
     hyper_rustls::{HttpsConnector, HttpsConnectorBuilder},
-    Error as YoutubeError,
 };
 use std::fmt::{Debug, Formatter};
 use std::path::{Path, PathBuf};
 use tokio::fs;
 use tracing::instrument;
-use twba_local_db::entities::videos::Model;
 use twba_local_db::prelude::{UsersModel, VideosModel};
 
 mod auth;

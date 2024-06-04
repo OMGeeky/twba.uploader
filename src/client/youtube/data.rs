@@ -1,7 +1,7 @@
 use crate::client::youtube::data::substitutions::*;
 use crate::prelude::*;
 use crate::CONF;
-use chrono::{DateTime, Datelike, NaiveDateTime, ParseResult, Utc};
+use chrono::{DateTime, Datelike, ParseResult, Utc};
 use google_youtube3::api::enums::{PlaylistStatusPrivacyStatusEnum, VideoStatusPrivacyStatusEnum};
 use std::fmt::Debug;
 use std::str::FromStr;
@@ -222,14 +222,14 @@ mod test {
 
     #[test]
     fn test_create_youtube_title_other() {
-        let (mut x, user) = get_test_sample_data();
+        let (x, user) = get_test_sample_data();
         let description = create_youtube_title(&x, &user, Location::Other).unwrap();
         assert_eq!("\"wow\"", description);
     }
 
     #[test]
     fn test_create_youtube_title_playlist() {
-        let (mut x, user) = get_test_sample_data();
+        let (x, user) = get_test_sample_data();
         let playlist = create_youtube_title(&x, &user, Location::Playlist).unwrap();
         assert_eq!("[2023-10-09] wow", playlist);
     }
@@ -242,25 +242,25 @@ mod test {
     }
     #[test]
     fn test_create_youtube_title_video_1() {
-        let (mut x, user) = get_test_sample_data();
+        let (x, user) = get_test_sample_data();
         let video = create_youtube_title(&x, &user, Location::Video(1)).unwrap();
         assert_eq!("[2023-10-09][1/4] wow", video);
     }
     #[test]
     fn test_create_youtube_title_video_2() {
-        let (mut x, user) = get_test_sample_data();
+        let (x, user) = get_test_sample_data();
         let video = create_youtube_title(&x, &user, Location::Video(2)).unwrap();
         assert_eq!("[2023-10-09][2/4] wow", video);
     }
     #[test]
     fn test_create_youtube_title_video_3() {
-        let (mut x, user) = get_test_sample_data();
+        let (x, user) = get_test_sample_data();
         let video = create_youtube_title(&x, &user, Location::Video(3)).unwrap();
         assert_eq!("[2023-10-09][3/4] wow", video);
     }
     #[test]
     fn test_create_youtube_title_video_4() {
-        let (mut x, user) = get_test_sample_data();
+        let (x, user) = get_test_sample_data();
         let video = create_youtube_title(&x, &user, Location::Video(4)).unwrap();
         assert_eq!("[2023-10-09][4/4] wow", video);
     }
@@ -274,7 +274,7 @@ mod test {
     }
 
     fn get_test_sample_data() -> (VideosModel, UsersModel) {
-        let mut x = VideosModel {
+        let x = VideosModel {
             part_count: 4,
             name: "wow".to_string(),
             created_at: "2023-10-09T05:33:59+00:00".to_string(),
