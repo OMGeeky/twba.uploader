@@ -189,12 +189,6 @@ impl UploaderClient {
         video.update(&self.db).await?;
         Ok(())
     }
-    async fn add_video_to_playlist(&self, video: &VideosModel, playlist_id: String) -> Result<()> {
-        let mut video = video.clone().into_active_model();
-        video.youtube_playlist_id = ActiveValue::Set(Some(playlist_id));
-        video.update(&self.db).await?;
-        Ok(())
-    }
 
     #[tracing::instrument(skip(self, video))]
     async fn set_video_status_on_db(&self, video: &VideosModel, status: Status) -> Result<()> {
