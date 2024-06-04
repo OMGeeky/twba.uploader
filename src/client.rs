@@ -1,7 +1,8 @@
-use crate::client::youtube::data::VideoData;
-use crate::client::youtube::data::{create_youtube_description, create_youtube_title};
+use crate::client::data::VideoData;
+use crate::client::data::{create_youtube_description, create_youtube_title};
 use crate::prelude::*;
 use crate::CONF;
+use data::Location;
 use google_youtube3::api::enums::{PlaylistStatusPrivacyStatusEnum, VideoStatusPrivacyStatusEnum};
 use google_youtube3::api::Scope;
 use lazy_static::lazy_static;
@@ -15,8 +16,8 @@ use twba_local_db::re_exports::sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, IntoActiveModel,
     Order, QueryFilter, QueryOrder, QuerySelect,
 };
-use youtube::data::Location;
 
+pub(crate) mod data;
 mod youtube;
 
 lazy_static! {
@@ -277,13 +278,9 @@ impl UploaderClient {
         let users = twba_local_db::get_watched_users(&db).await?;
         for user in users {
             let user_id = user.id.to_string();
-            let client = youtube::YoutubeClient::new(&YOUTUBE_DEFAULT_SCOPES, Some(user)).await?;
+            let client =
+                youtube::YoutubeClient::new(&YOUTUBE_DEFAULT_SCOPES, Some(user.youtube_id)).await?;
             clients.insert(user_id, client);
-        }
-        if clients.is_empty() {
-            //insert default user/client
-            let client = youtube::YoutubeClient::new(&YOUTUBE_DEFAULT_SCOPES, None).await?;
-            clients.insert("unknown".into(), client);
         }
 
         Ok(Self {

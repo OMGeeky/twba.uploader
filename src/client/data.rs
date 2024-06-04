@@ -1,4 +1,4 @@
-use crate::client::youtube::data::substitutions::*;
+use crate::client::data::substitutions::*;
 use crate::prelude::*;
 use crate::CONF;
 use chrono::{DateTime, Datelike, ParseResult, Utc};
@@ -196,8 +196,8 @@ fn parse_date(date: &str) -> ParseResult<DateTime<Utc>> {
 
 #[cfg(test)]
 mod test {
-    use crate::client::youtube::data::create_youtube_title;
-    use crate::client::youtube::data::Location;
+    use crate::client::data::create_youtube_title;
+    use crate::client::data::Location;
     use crate::prelude::twba_local_db::prelude::{Status, UsersModel, VideosModel};
 
     #[test]

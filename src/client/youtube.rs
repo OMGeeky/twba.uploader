@@ -1,4 +1,4 @@
-use crate::client::youtube::data::VideoData;
+use crate::client::data::VideoData;
 use crate::prelude::*;
 use google_youtube3::api::{
     Playlist, PlaylistSnippet, PlaylistStatus, Scope, VideoSnippet, VideoStatus,
@@ -14,10 +14,8 @@ use std::fmt::{Debug, Formatter};
 use std::path::{Path, PathBuf};
 use tokio::fs;
 use tracing::instrument;
-use twba_local_db::prelude::UsersModel;
 
 mod auth;
-pub(crate) mod data;
 mod flow_delegate;
 
 pub struct YoutubeClient {
@@ -150,8 +148,8 @@ impl Debug for YoutubeClient {
 }
 
 impl YoutubeClient {
-    #[tracing::instrument(skip(user), fields(user.id = user.as_ref().map(|x| x.id),user.twitch_id = user.as_ref().map(|x| &x.twitch_id)))]
-    pub async fn new(scopes: &Vec<Scope>, user: Option<UsersModel>) -> Result<Self> {
+    #[tracing::instrument]
+    pub async fn new(scopes: &Vec<Scope>, user: Option<String>) -> Result<Self> {
         let hyper_client = Self::create_hyper_client()?;
         let application_secret_path = PathBuf::from(
             &shellexpand::full(&crate::CONF.google.youtube.client_secret_path)
@@ -159,12 +157,7 @@ impl YoutubeClient {
                 .to_string(),
         );
 
-        let auth = auth::get_auth(
-            &application_secret_path,
-            scopes,
-            user.as_ref().map(|x| &x.youtube_id),
-        )
-        .await?;
+        let auth = auth::get_auth(&application_secret_path, scopes, user).await?;
         let client = google_youtube3::YouTube::new(hyper_client, auth);
         Ok(Self { client })
     }
